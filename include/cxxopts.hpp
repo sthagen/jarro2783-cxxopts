@@ -82,7 +82,7 @@ namespace cxxopts
 
 namespace cxxopts
 {
-  typedef icu::UnicodeString String;
+  using String = icu::UnicodeString;
 
   inline
   String
@@ -217,7 +217,7 @@ namespace std
 
 namespace cxxopts
 {
-  typedef std::string String;
+  using String = std::string;
 
   template <typename T>
   T
@@ -562,7 +562,7 @@ namespace cxxopts
       {
         template <typename U>
         void
-        operator()(bool, U, const std::string&) {}
+        operator()(bool, U, const std::string&) const {}
       };
 
       template <typename T, typename U>
@@ -1030,9 +1030,9 @@ namespace cxxopts
 
     OptionDetails(const OptionDetails& rhs)
     : m_desc(rhs.m_desc)
+    , m_value(rhs.m_value->clone())
     , m_count(rhs.m_count)
     {
-      m_value = rhs.m_value->clone();
     }
 
     OptionDetails(OptionDetails&& rhs) = default;
@@ -1133,12 +1133,25 @@ namespace cxxopts
       m_value->parse();
     }
 
+#if defined(__GNUC__)
+#if __GNUC__ <= 10 && __GNUC_MINOR__ <= 1
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Werror=null-dereference"
+#endif
+#endif
+    
     CXXOPTS_NODISCARD
     size_t
     count() const noexcept
     {
       return m_count;
     }
+    
+#if defined(__GNUC__)
+#if __GNUC__ <= 10 && __GNUC_MINOR__ <= 1
+#pragma GCC diagnostic pop
+#endif
+#endif
 
     // TODO: maybe default options should count towards the number of arguments
     CXXOPTS_NODISCARD
@@ -1227,8 +1240,7 @@ namespace cxxopts
   {
     public:
 
-    ParseResult() {}
-     
+    ParseResult() = default;
     ParseResult(const ParseResult&) = default;
 
     ParseResult(NameHashMap&& keys, ParsedHashMap&& values, std::vector<KeyValue> sequential, std::vector<std::string>&& unmatched_args)
@@ -1831,9 +1843,9 @@ OptionParser::consume_positional(const std::string& a, PositionalListIterator& n
     auto iter = m_options.find(*next);
     if (iter != m_options.end())
     {
-      auto& result = m_parsed[iter->second->hash()];
       if (!iter->second->value().is_container())
       {
+        auto& result = m_parsed[iter->second->hash()];
         if (result.count() == 0)
         {
           add_to_option(iter, *next, a);
@@ -1889,7 +1901,7 @@ OptionParser::parse(int argc, const char* const* argv)
 {
   int current = 1;
   bool consume_remaining = false;
-  PositionalListIterator next_positional = m_positional.begin();
+  auto next_positional = m_positional.begin();
 
   std::vector<std::string> unmatched;
 
@@ -1923,7 +1935,7 @@ OptionParser::parse(int argc, const char* const* argv)
       }
       else
       {
-        unmatched.push_back(argv[current]);
+        unmatched.emplace_back(argv[current]);
       }
       //if we return from here then it was parsed successfully, so continue
     }
@@ -1978,7 +1990,7 @@ OptionParser::parse(int argc, const char* const* argv)
           if (m_allow_unrecognised)
           {
             // keep unrecognised options in argument list, skip to next argument
-            unmatched.push_back(argv[current]);
+            unmatched.emplace_back(argv[current]);
             ++current;
             continue;
           }
@@ -2031,7 +2043,7 @@ OptionParser::parse(int argc, const char* const* argv)
 
     //adjust argv for any that couldn't be swallowed
     while (current != argc) {
-      unmatched.push_back(argv[current]);
+      unmatched.emplace_back(argv[current]);
       ++current;
     }
   }
@@ -2226,12 +2238,16 @@ void
 Options::generate_all_groups_help(String& result) const
 {
   std::vector<std::string> all_groups;
-  all_groups.reserve(m_help.size());
 
-  for (const auto& group : m_help)
-  {
-    all_groups.push_back(group.first);
-  }
+  std::transform(
+    m_help.begin(),
+    m_help.end(),
+    std::back_inserter(all_groups),
+    [] (const std::map<std::string, HelpGroupDetails>::value_type& group)
+    {
+      return group.first;
+    }
+  );
 
   generate_group_help(result, all_groups);
 }
