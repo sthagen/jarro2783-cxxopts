@@ -7,9 +7,9 @@ tagged release version.
 
 ## Version 3 breaking changes
 
-If you have used version 2, there are a couple of breaking changes in (the as
-yet unreleased, current master) version 3 that you should be aware of. If you are new to
-`cxxopts` you can skip this section.
+If you have used version 2, there are a couple of breaking changes in version 3
+that you should be aware of. If you are new to `cxxopts` you can skip this
+section.
 
 The parser no longer modifies its arguments, so you can pass a const `argc` and
 `argv` and expect them not to be changed.
@@ -160,6 +160,8 @@ and writing `--option=another` would give it the value `"another"`.
 Note that the default and implicit value is always stored as a string,
 regardless of the type that you want to store it in. It will be parsed as
 though it was given on the command line.
+
+Default values are not counted by `Options::count`.
 
 ## Boolean values
 
