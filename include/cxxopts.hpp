@@ -143,10 +143,15 @@ toLocalString(std::string s)
 CXXOPTS_DIAGNOSTIC_PUSH
 CXXOPTS_IGNORE_WARNING("-Wnon-virtual-dtor")
 // This will be ignored under other compilers like LLVM clang.
-class UnicodeStringIterator : public
-  std::iterator<std::forward_iterator_tag, int32_t>
+class UnicodeStringIterator
 {
   public:
+
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = int32_t;
+  using difference_type = std::ptrdiff_t;
+  using pointer = value_type*;
+  using reference = value_type&;
 
   UnicodeStringIterator(const icu::UnicodeString* string, int32_t pos)
   : s(string)
@@ -1241,7 +1246,8 @@ class standard_value<bool> : public abstract_value<bool>
   explicit standard_value(bool* b)
   : abstract_value(b)
   {
-    set_default_and_implicit();
+    m_implicit = true;
+    m_implicit_value = "true";
   }
 
   std::shared_ptr<Value>
