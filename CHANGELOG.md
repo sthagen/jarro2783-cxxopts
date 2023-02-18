@@ -3,13 +3,20 @@
 This is the changelog for `cxxopts`, a C++11 library for parsing command line
 options. The project adheres to semantic versioning.
 
-## Unreleased
+## 3.1.1
+
+### Bug Fixes
+
+* Fixed version number in header.
+
+## 3.1
 
 ### Added
 
 * Support for multiple long names for the same option (= multiple long aliases)
 * Add a `program()` function to retrieve the program name.
 * Added a .clang-format file.
+* Added iterator and printing for a ParseResult.
 
 ### Changed
 
