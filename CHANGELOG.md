@@ -8,6 +8,7 @@ options. The project adheres to semantic versioning.
 ### Bug Fixes
 
 * Fixed version number in header.
+* Fixed cast warning in Unicode function.
 
 ## 3.1
 
@@ -21,6 +22,7 @@ options. The project adheres to semantic versioning.
 ### Changed
 
 * Cleanup exception code, add cxxopts::exceptions namespace.
+* Renamed several exceptions to be more descriptive, and added to a nested namespace.
 
 ### Bug Fixes
 
