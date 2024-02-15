@@ -3,13 +3,14 @@
 This is the changelog for `cxxopts`, a C++11 library for parsing command line
 options. The project adheres to semantic versioning.
 
-## Unreleased
+## 3.2
 
 ### Bug fixes
 
 * Fix unannotated fallthrough.
 * Fix sign conversion with Unicode output.
 * Don't initialize regex in static initialiser.
+* Fix incorrect integer overflow checks.
 
 ### Added
 
@@ -19,6 +20,7 @@ options. The project adheres to semantic versioning.
 
 * Change quote output to '' to match Windows.
 * Don't split positional arguments by the list delimiter.
+* Order help groups by the order they were added.
 
 ## 3.1.1
 
