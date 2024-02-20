@@ -94,7 +94,7 @@ THE SOFTWARE.
 
 #define CXXOPTS__VERSION_MAJOR 3
 #define CXXOPTS__VERSION_MINOR 2
-#define CXXOPTS__VERSION_PATCH 0
+#define CXXOPTS__VERSION_PATCH 1
 
 #if (__GNUC__ < 10 || (__GNUC__ == 10 && __GNUC_MINOR__ < 1)) && __GNUC__ >= 6
   #define CXXOPTS_NULL_DEREF_IGNORE
@@ -1062,6 +1062,28 @@ parse_value(const std::string& text, T& value) {
   stringstream_parser(text, value);
 }
 
+#ifdef CXXOPTS_HAS_OPTIONAL
+template <typename T>
+void
+parse_value(const std::string& text, std::optional<T>& value)
+{
+  T result;
+  parse_value(text, result);
+  value = std::move(result);
+}
+#endif
+
+inline
+void parse_value(const std::string& text, char& c)
+{
+  if (text.length() != 1)
+  {
+    throw_or_mimic<exceptions::incorrect_argument_type>(text);
+  }
+
+  c = text[0];
+}
+
 template <typename T>
 void
 parse_value(const std::string& text, std::vector<T>& value)
@@ -1095,28 +1117,6 @@ add_value(const std::string& text, std::vector<T>& value)
   T v;
   add_value(text, v);
   value.emplace_back(std::move(v));
-}
-
-#ifdef CXXOPTS_HAS_OPTIONAL
-template <typename T>
-void
-parse_value(const std::string& text, std::optional<T>& value)
-{
-  T result;
-  parse_value(text, result);
-  value = std::move(result);
-}
-#endif
-
-inline
-void parse_value(const std::string& text, char& c)
-{
-  if (text.length() != 1)
-  {
-    throw_or_mimic<exceptions::incorrect_argument_type>(text);
-  }
-
-  c = text[0];
 }
 
 template <typename T>
