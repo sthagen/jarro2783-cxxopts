@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef CXXOPTS_HPP_INCLUDED
 #define CXXOPTS_HPP_INCLUDED
 
+#include <cerrno>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -999,6 +1000,27 @@ check_signed_range(bool negative, U value, const std::string& text)
   SignedCheck<T, std::numeric_limits<T>::is_signed>()(negative, value, text);
 }
 
+template <typename T>
+void
+floating_point_parser(const std::string& text, T& value, T (*parser)(const char*, char**))
+{
+  if (text.empty())
+  {
+    throw_or_mimic<exceptions::incorrect_argument_type>(text);
+  }
+
+  char* end = nullptr;
+  errno = 0;
+  const auto result = parser(text.c_str(), &end);
+
+  if (end == text.c_str() || errno == ERANGE)
+  {
+    throw_or_mimic<exceptions::incorrect_argument_type>(text);
+  }
+
+  value = result;
+}
+
 } // namespace detail
 
 template <typename R, typename T>
@@ -1057,7 +1079,11 @@ integer_parser(const std::string& text, T& value)
     US limit = 0;
     if (negative)
     {
-      limit = static_cast<US>(std::abs(static_cast<intmax_t>((std::numeric_limits<T>::min)())));
+      // |min| equals max + 1 for two's-complement signed types; computing it
+      // via std::abs(min) is undefined behaviour (e.g. abs(INT64_MIN)). Build
+      // the same value in unsigned arithmetic instead. For unsigned T this
+      // intentionally wraps to 0, matching the previous std::abs(0) result.
+      limit = static_cast<US>(static_cast<US>((std::numeric_limits<T>::max)()) + US{1});
     }
     else
     {
@@ -1130,6 +1156,27 @@ void
 parse_value(const std::string& text, std::string& value)
 {
   value = text;
+}
+
+inline
+void
+parse_value(const std::string& text, float& value)
+{
+  detail::floating_point_parser(text, value, std::strtof);
+}
+
+inline
+void
+parse_value(const std::string& text, double& value)
+{
+  detail::floating_point_parser(text, value, std::strtod);
+}
+
+inline
+void
+parse_value(const std::string& text, long double& value)
+{
+  detail::floating_point_parser(text, value, std::strtold);
 }
 
 // The fallback parser. It uses the stringstream parser to parse all types
